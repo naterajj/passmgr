@@ -18,6 +18,7 @@ var (
 	insert      bool
 	search      string
 	update      uint
+	remove      uint
 	version     bool
 )
 
@@ -45,6 +46,8 @@ func main() {
 		ops.Search(search, db)
 	} else if update != 0 {
 		ops.Update(update, db)
+	} else if remove != 0 {
+		ops.Delete(remove, db)
 	} else if insert {
 		ops.Insert(db)
 	} else if import_csv != "" {
@@ -58,6 +61,7 @@ func processFlags() {
 	flag.BoolVar(&insert, "insert", false, "--insert")
 	flag.StringVar(&search, "search", "example.com", "--search <host>")
 	flag.UintVar(&update, "update", 0, "--update <uint>")
+	flag.UintVar(&remove, "delete", 0, "--delete <uint>")
 	flag.BoolVar(&help, "help", false, "--help")
 	flag.BoolVar(&version, "version", false, "--version")
 

@@ -32,6 +32,7 @@ type SearchParams struct {
 }
 
 const (
+	delete_record  string = "DELETE FROM passwords WHERE id = ?"
 	insert_record  string = "INSERT INTO passwords (host, url, username, password, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
 	update_record  string = "UPDATE passwords SET host = ?, url = ?, username = ?, password = ?, updated_at = ? WHERE id = ?"
 	search_records string = "SELECT id, host, url, username, password, created_at, updated_at FROM passwords WHERE host LIKE ? ORDER by updated_at DESC"
@@ -173,6 +174,25 @@ func (d Database) Update(id uint, rec Record) {
 	}
 }
 
+func (d Database) Delete(id uint) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	tx, err := d.db.BeginTx(ctx, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	_, execErr := tx.ExecContext(ctx, delete_record, id)
+	if execErr != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			panic(fmt.Sprintf("Delete failed: %v, unable to rollback: %v\n", execErr, rollbackErr))
+		}
+		panic(fmt.Sprintf("Delete failed: %v", execErr))
+	}
+	if err := tx.Commit(); err != nil {
+		panic(err)
+	}
+}
 func (d Database) TableExists() bool {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()

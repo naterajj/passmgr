@@ -31,6 +31,18 @@ func Update(id uint, db database.Database) {
 	printRecord(db.SearchByID(id))
 }
 
+func Delete(id uint, db database.Database) {
+	r := db.SearchByID(id)
+	printRecord(r)
+	reply := input.Read("Type DELETE if you want to delete this record: ")
+	if reply != "DELETE" {
+		fmt.Println("Aborting!")
+	} else {
+		db.Delete(id)
+		fmt.Println("Record deleted\n")
+	}
+}
+
 func Insert(db database.Database) {
 	r := inputRecord()
 	record := []database.Record{r}
