@@ -33,7 +33,7 @@ type SearchParams struct {
 
 const (
 	insert_record  string = "INSERT INTO passwords (host, url, username, password, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
-	update_record  string = "UPDATE passwords SET password = ?, updated_at = ? WHERE id = ?"
+	update_record  string = "UPDATE passwords SET host = ?, url = ?, username = ?, password = ?, updated_at = ? WHERE id = ?"
 	search_records string = "SELECT id, host, url, username, password, created_at, updated_at FROM passwords WHERE host LIKE ? ORDER by updated_at DESC"
 	search_by_id   string = "SELECT id, host, url, username, password, created_at, updated_at FROM passwords WHERE ID = ?"
 	create_table   string = `
@@ -160,7 +160,8 @@ func (d Database) Update(id uint, rec Record) {
 		panic(err)
 	}
 
-	_, execErr := tx.ExecContext(ctx, update_record, symcrypto.Encrypt(rec.Password, d.passphrase), time.Now().Local(), rec.ID)
+	var ciphertext sql.RawBytes = symcrypto.Encrypt(rec.Password, d.passphrase)
+	_, execErr := tx.ExecContext(ctx, update_record, rec.Host, rec.URL, rec.username, ciphertext, time.Now().Local(), id)
 	if execErr != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			panic(fmt.Sprintf("Update failed: %v, unable to rollback: %v\n", execErr, rollbackErr))

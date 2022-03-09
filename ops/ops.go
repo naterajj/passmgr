@@ -22,12 +22,13 @@ func Search(host string, db database.Database) {
 
 func Update(id uint, db database.Database) {
 	r := db.SearchByID(id)
-	fmt.Println("Current record")
+	fmt.Println("Current record\n")
 	printRecord(r)
-	fmt.Println("Enter updated record.")
+	fmt.Println("Enter new record\n")
 	nr := inputRecord()
 	db.Update(id, nr)
-	fmt.Println("Record updated")
+	fmt.Println("Record updated\n")
+	printRecord(db.SearchByID(id))
 }
 
 func Insert(db database.Database) {
@@ -49,6 +50,8 @@ func inputRecord() database.Record {
 		if err == nil {
 			r.Password = password
 			break
+		} else {
+			fmt.Println(err)
 		}
 	}
 	return r
@@ -58,5 +61,5 @@ func printRecord(r database.Record) {
 	fmt.Printf("%d: %s %s\n", r.ID, r.Host, r.URL)
 	fmt.Println("username: " + r.Username)
 	fmt.Println("password: " + r.Password)
-	fmt.Println("Last Updated: " + r.UpdatedAt)
+	fmt.Println("Last Updated: " + r.UpdatedAt + "\n")
 }
