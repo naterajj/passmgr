@@ -41,6 +41,7 @@ func main() {
 	}
 
 	db := prepareDB(conf, passphrase)
+	defer enforceDBPermissions(conf)
 
 	if search != "example.com" {
 		ops.Search(search, db)
@@ -80,7 +81,7 @@ func processFlags() {
 	}
 }
 
-func prepareDB(conf config.Config, passphrase string) database.Database {
+func enforceDBPermissions(conf config.Config) {
 	if conf.EnforceDBPermissions {
 		if _, err := os.Lstat(conf.Dbfile); err != nil {
 			// dbfile doesn't exit yet
@@ -88,6 +89,10 @@ func prepareDB(conf config.Config, passphrase string) database.Database {
 			panic(err)
 		}
 	}
+}
+
+func prepareDB(conf config.Config, passphrase string) database.Database {
+	enforceDBPermissions(conf)
 
 	db := database.NewDatabase(conf.Dbfile, passphrase)
 	if !db.TableExists() {
