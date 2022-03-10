@@ -32,22 +32,31 @@ type SearchParams struct {
 }
 
 const (
-	delete_record  string = "DELETE FROM passwords WHERE id = ?"
-	insert_record  string = "INSERT INTO passwords (host, url, username, password, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
-	update_record  string = "UPDATE passwords SET host = ?, url = ?, username = ?, password = ?, updated_at = ? WHERE id = ?"
-	search_records string = "SELECT id, host, url, username, password, created_at, updated_at FROM passwords WHERE host LIKE ? ORDER by updated_at DESC"
-	search_by_id   string = "SELECT id, host, url, username, password, created_at, updated_at FROM passwords WHERE ID = ?"
-	create_table   string = `
-CREATE TABLE IF NOT EXISTS passwords (
+	delete_record  string = "DELETE FROM password WHERE id = ?"
+	insert_record  string = "INSERT INTO password (host, url, username, password, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
+	update_record  string = "UPDATE password SET host = ?, url = ?, username = ?, password = ?, updated_at = ? WHERE id = ?"
+	search_records string = "SELECT id, host, url, username, password, created_at, updated_at FROM password WHERE host LIKE ? ORDER by updated_at DESC"
+	search_by_id   string = "SELECT id, host, url, username, password, created_at, updated_at FROM password WHERE ID = ?"
+	check_table    string = "SELECT COUNT(name) FROM sqlite_master WHERE name='password'"
+	create_tables  string = `
+CREATE TABLE IF NOT EXISTS password (
+  id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+  host               TEXT NOT NULL,
+  url                TEXT NOT NULL,
+  username           TEXT,
+  password           BLOB NOT NULL,
+  master_password_id INTEGER NOT NULL,
+  created_at         TEXT NOT NULL,
+  updated_at         TEXT NOT NULL,
+  FOREIGN KEY(master_password_id) REFERENCES master_password(id)
+);
+
+CREATE TABLE IF NOT EXISTS master_password (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  host       TEXT NOT NULL,
-  url        TEXT NOT NULL,
-  username   TEXT,
   password   BLOB NOT NULL,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );`
-	check_table string = "SELECT COUNT(name) FROM sqlite_master WHERE name='passwords'"
 )
 
 func NewDatabase(DBFile string, passphrase string) Database {
@@ -229,7 +238,7 @@ func (d Database) SetupTable() {
 		panic(err)
 	}
 
-	_, execErr := tx.ExecContext(ctx, create_table)
+	_, execErr := tx.ExecContext(ctx, create_tables)
 	if execErr != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			panic(fmt.Sprintf("Setup failed: %v, unable to rollback: %v\n", execErr, rollbackErr))
