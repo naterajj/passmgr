@@ -162,7 +162,7 @@ func (d Database) Update(id uint, rec Record) {
 	}
 
 	var ciphertext sql.RawBytes = symcrypto.Encrypt(rec.Password, d.passphrase)
-	_, execErr := tx.ExecContext(ctx, update_record, rec.Host, rec.URL, rec.username, ciphertext, time.Now().Local(), id)
+	_, execErr := tx.ExecContext(ctx, update_record, rec.Host, rec.URL, rec.Username, ciphertext, time.Now().Local(), id)
 	if execErr != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			panic(fmt.Sprintf("Update failed: %v, unable to rollback: %v\n", execErr, rollbackErr))
